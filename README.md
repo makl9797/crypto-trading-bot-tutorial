@@ -1,1 +1,4 @@
-# crypto-trading-bot-tutorial
+# Hedgehog
+
+**TODO: Add description**
+
