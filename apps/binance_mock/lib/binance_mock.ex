@@ -113,14 +113,14 @@ defmodule BinanceMock do
           order_book,
           :sell_side,
           [order | order_book.sell_side]
-          |> Enum.sort(&D.lt?(&1.price, &2.price))
+          |> Enum.sort(&Decimal.lt?(&1.price, &2.price))
         )
       else
         Map.replace!(
           order_book,
           :buy_side,
           [order | order_book.buy_side]
-          |> Enum.sort(&D.gt?(&1.price, &2.price))
+          |> Enum.sort(&Decimal.gt?(&1.price, &2.price))
         )
       end
 
@@ -174,13 +174,6 @@ defmodule BinanceMock do
     {:reply, id + 1, %{state | fake_order_id: id + 1}}
   end
 
-  def get_order(symbol, time, order_id) do
-    GenServer.call(
-      __MODULE__,
-      {:get_order, symbol, time, order_id}
-    )
-  end
-
   def handle_call(
         {:get_order, symbol, time, order_id},
         _from,
@@ -219,12 +212,12 @@ defmodule BinanceMock do
 
     filled_buy_orders =
       order_book.buy_side
-      |> Enum.take_while(&D.lt?(trade_event.price, &1.price))
+      |> Enum.take_while(&Decimal.lt?(trade_event.price, &1.price))
       |> Enum.map(&Map.replace!(&1, :status, "FILLED"))
 
     filled_sell_orders =
       order_book.sell_side
-      |> Enum.take_while(&D.gt?(trade_event.price, &1.price))
+      |> Enum.take_while(&Decimal.gt?(trade_event.price, &1.price))
       |> Enum.map(&Map.replace!(&1, :status, "FILLED"))
 
     (filled_buy_orders ++ filled_sell_orders)
@@ -254,6 +247,13 @@ defmodule BinanceMock do
       )
 
     {:noreply, %{state | order_books: order_books}}
+  end
+
+  def get_order(symbol, time, order_id) do
+    GenServer.call(
+      __MODULE__,
+      {:get_order, symbol, time, order_id}
+    )
   end
 
   defp convert_order_to_event(%Binance.Order{} = order, time) do
